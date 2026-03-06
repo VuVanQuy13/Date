@@ -1,0 +1,272 @@
+from flask import Flask, render_template_string, request, jsonify
+import datetime
+
+app = Flask(__name__)
+
+HTML_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rủ Hằng Đi Chơi 😊</title>
+
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    padding: 20px;
+    background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+    background-size: 800% 800%;
+    animation: gradientMove 15s ease infinite;
+}
+
+@keyframes gradientMove {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+.card {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    padding: 30px 20px;
+    border-radius: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 40px rgba(255,255,255,0.3);
+    animation: fadeIn 1.5s ease, pulse 3s infinite;
+    transition: opacity 0.5s ease;
+    position: relative;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(30px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+h1 {
+    font-size: clamp(18px, 4vw, 28px);
+    line-height: 1.5;
+}
+
+button {
+    width: 100%;
+    max-width: 220px;
+    padding: 14px;
+    font-size: clamp(16px, 4vw, 18px);
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    margin: 10px;
+    transition: 0.3s;
+}
+
+#yes {
+    background: #ff4081;
+    color: white;
+    box-shadow: 0 0 20px #ff4081;
+}
+
+#yes:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px #ff4081;
+}
+
+#no {
+    background: white;
+}
+
+.sparkle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px white;
+    animation: sparkleMove 6s linear infinite;
+}
+
+@keyframes sparkleMove {
+    from {transform: translateY(0);}
+    to {transform: translateY(-100vh);}
+}
+
+@keyframes floatUp {
+    from {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100vh) scale(1.5);
+        opacity: 0;
+    }
+}
+
+.success-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="mainCard">
+<h1>
+Cúi tuần này T7 và chủ nhật Hằng có rảnh hum nao khum tối á, 
+thì đi dạo với tui chút chứ 😓<br>
+Nhớ trả lời tui nha khum tui bùn lắm đó 😢😢😢
+</h1>
+
+<button id="yes" onclick="yesClick()">Đi nè 👌</button>
+<button id="no">Hong 😅</button>
+</div>
+
+<script>
+
+/* ===== NÚT HONG CHẠY ===== */
+
+const noBtn = document.getElementById("no");
+let moveInterval = null;
+
+function startRunning() {
+
+    /* gửi log về server */
+    fetch('/no', { method: 'POST' });
+
+    if (moveInterval) return;
+
+    noBtn.style.position = "fixed";
+
+    moveInterval = setInterval(() => {
+
+        const btnWidth = noBtn.offsetWidth;
+        const btnHeight = noBtn.offsetHeight;
+
+        const padding = 20;
+
+        const maxX = window.innerWidth - btnWidth - padding;
+        const maxY = window.innerHeight - btnHeight - padding;
+
+        const minX = padding;
+        const minY = padding;
+
+        const randomX = Math.random() * (maxX - minX) + minX;
+        const randomY = Math.random() * (maxY - minY) + minY;
+
+        noBtn.style.transition = "all 0.35s ease";
+        noBtn.style.left = randomX + "px";
+        noBtn.style.top = randomY + "px";
+
+    }, 500);
+}
+
+noBtn.addEventListener("mouseover", startRunning);
+
+noBtn.addEventListener("touchstart", function(e){
+    e.preventDefault();
+    startRunning();
+});
+
+
+/* ===== YES CLICK ===== */
+
+function yesClick() {
+
+    fetch('/yes', { method: 'POST' });
+
+    for (let i = 0; i < 40; i++) {
+        setTimeout(createHeart, i * 80);
+    }
+
+    const card = document.getElementById("mainCard");
+    card.style.opacity = "0";
+
+    setTimeout(() => {
+        document.body.innerHTML = `
+        <div class="success-screen">
+            <div style="font-size:90px;">💖</div>
+            <h1 style="font-size:clamp(22px,5vw,36px);">
+                Vậy chốt kèo nhaaa 😍<br>
+                Tui qua đón đó 💕
+            </h1>
+        </div>
+        `;
+    }, 800);
+}
+
+function createHeart() {
+    var heart = document.createElement("div");
+    heart.innerHTML = "💖";
+    heart.style.position = "absolute";
+    heart.style.fontSize = Math.random() * 30 + 20 + "px";
+    heart.style.left = Math.random() * window.innerWidth + "px";
+    heart.style.top = window.innerHeight + "px";
+    heart.style.animation = "floatUp 4s linear forwards";
+
+    document.body.appendChild(heart);
+
+    setTimeout(() => {
+        heart.remove();
+    }, 4000);
+}
+
+function createSparkle() {
+    var sparkle = document.createElement("div");
+    sparkle.className = "sparkle";
+    sparkle.style.left = Math.random() * window.innerWidth + "px";
+    sparkle.style.top = window.innerHeight + "px";
+    document.body.appendChild(sparkle);
+
+    setTimeout(() => {
+        sparkle.remove();
+    }, 6000);
+}
+
+setInterval(createSparkle, 150);
+
+</script>
+
+</body>
+</html>
+"""
+
+@app.route("/")
+def home():
+    return render_template_string(HTML_PAGE)
+
+@app.route("/yes", methods=["POST"])
+def yes():
+    ip = request.remote_addr
+    time = datetime.datetime.now()
+    print(f"💖 Đã bấm ĐI NÈ | IP: {ip} | {time}")
+    return jsonify({"status": "success"})
+
+@app.route("/no", methods=["POST"])
+def no():
+    ip = request.remote_addr
+    time = datetime.datetime.now()
+    print(f"😂 HẰNG ĐANG CỐ BẤM HONG | IP: {ip} | {time}")
+    return jsonify({"status": "logged"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
